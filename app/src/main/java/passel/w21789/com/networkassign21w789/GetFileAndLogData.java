@@ -1,15 +1,14 @@
 package passel.w21789.com.networkassign21w789;
 
 import android.app.IntentService;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.IBinder;
 import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.telephony.TelephonyManager;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.widget.Toast;
@@ -24,6 +23,7 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public class GetFileAndLogData extends IntentService {
+    private static final int timePerLog = 100; //in ms, time before taking a reading and logging it
 
     public GetFileAndLogData() {
         super("GetFileAndLogData");
@@ -66,20 +66,6 @@ public class GetFileAndLogData extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
-//    private class DownloadFileAsync extends AsyncTask<URL,Integer,Long>{
-//        protected Long doInBackground(URL... urls) {
-//            int count = urls.length;
-//            long totalSize = 0;
-//            for (int i = 0; i < count; i++) {
-//                totalSize += Downloader.downloadFile(urls[i]);
-//                publishProgress((int) ((i / (float) count) * 100));
-//                // Escape early if cancel() is called
-//                if (isCancelled()) break;
-//            }
-//            return totalSize;
-//        }
-//    }
-
     @Override
     public void onHandleIntent(Intent intent) {
 
@@ -91,13 +77,14 @@ public class GetFileAndLogData extends IntentService {
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
         String networkType = activeNetwork.getTypeName();
+        TelephonyManager telManager = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
 
         long currentTime= System.currentTimeMillis();
 
         sendMessage(convertDate(currentTime));  // send to the main Activity so user can see
         appendLog(convertDate(currentTime));
 
-        String message = "network: " + networkType;
+        String message = "network: " + networkType + ", " + Integer.valueOf(telManager.getNetworkType());
         sendMessage(message);  // send to the main Activity so user can see
         appendLog(message);
 
@@ -129,8 +116,8 @@ public class GetFileAndLogData extends IntentService {
                 total += count;
                 currentTotal += count;
                 currentTime = System.currentTimeMillis();
-                if ((currentTime - prevTime) >= 100) { //1000 ms
-                    message = String.valueOf(8*currentTotal/1000) + " kbps";
+                if ((currentTime - prevTime) >= timePerLog) { //in ms
+                    message = String.valueOf(8*currentTotal/1000) + " kbps"; //8 bits per byte, 1000 bits per kbit
                     sendMessage(message);  // send to the main Activity so user can see
                     appendLog(message);
 //                    Log.d("data: ", message);
