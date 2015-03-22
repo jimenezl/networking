@@ -71,6 +71,7 @@ public class GetFileAndLogData extends IntentService {
 
         Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
 
+        //these next five lines are only so we get a bit of extra network info
         ConnectivityManager cm =
                 (ConnectivityManager)getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -139,6 +140,7 @@ public class GetFileAndLogData extends IntentService {
         return;
     }
 
+    //easy date conversion
     public static String convertDate(Long dateInMilliseconds) {
         return DateFormat.format("MM/dd/yyyy hh:mm:ss", dateInMilliseconds).toString();
     }
